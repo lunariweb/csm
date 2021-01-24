@@ -1,4 +1,4 @@
-import { Avatar } from '@material-ui/core';
+import { Avatar, Box, makeStyles } from '@material-ui/core';
 import React, { useState } from 'react';
 import './MessageSender.css';
 import VideocamIcon from '@material-ui/icons/Videocam';
@@ -7,12 +7,37 @@ import InsertEmoticonIcon from '@material-ui/icons/InsertEmoticon';
 import { useStateValue } from '../../../StateProvider';
 import db from './../../../firebase'
 import firebase from 'firebase'
+import { Rating } from '@material-ui/lab';
+
+const labels = {
+  0.5: 'Useless',
+  1: 'Useless+',
+  1.5: 'Poor',
+  2: 'Poor+',
+  2.5: 'Ok',
+  3: 'Ok+',
+  3.5: 'Good',
+  4: 'Good+',
+  4.5: 'Excellent',
+  5: 'Excellent+',
+};
+
+const useStyles = makeStyles({
+  root: {
+    width: 200,
+    display: 'flex',
+    alignItems: 'center',
+  },
+});
 
 
 function MessageSender() {
   const [{user} , dispatch] = useStateValue();
   const [input, setInput] = useState('');
   const [inputURL, setInputURL] = useState('');
+  const [value, setValue] = React.useState('');
+  const [hover, setHover] = React.useState('');
+  const classes = useStyles();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -22,11 +47,13 @@ function MessageSender() {
       timestamp: firebase.firestore.FieldValue.serverTimestamp(),
       profilePic: user.photoURL,
       username: user.displayName,
-      image: inputURL
+      image: inputURL,
+      rate: value,
     })
 
     setInput('');
     setInputURL('');
+    setValue('');
   };
 
   return (
@@ -54,16 +81,20 @@ function MessageSender() {
       </div>
       <div className="messageSender__bottom">
         <div className="messageSender__option">
-          <VideocamIcon style={{ color: 'red' }} />
-          <h3>Live Video</h3>
-        </div>
-        <div className="messageSender__option">
-          <PhotoLibraryIcon style={{ color: 'green' }} />
-          <h3>Photo/Video</h3>
-        </div>
-        <div className="messageSender__option">
-          <InsertEmoticonIcon style={{ color: 'orange' }} />
-          <h3>Feeling/Activity</h3>
+        <div className={classes.root}>
+      <Rating
+        name="hover-feedback"
+        value={value}
+        precision={0.5}
+        onChange={(event, newValue) => {
+          setValue(newValue);
+        }}
+        onChangeActive={(event, newHover) => {
+          setHover(newHover);
+        }}
+      />
+      {value !== null && <Box ml={2}>{labels[hover !== -1 ? hover : value]}</Box>}
+    </div>
         </div>
       </div>
     </div>
